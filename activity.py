@@ -45,7 +45,7 @@ class VotingSystem:
 
         self.create_tables()
 
-    # CREATE DATABASE TABLES
+    # CREATE TABLES
     def create_tables(self):
 
         self.cursor.execute("""
@@ -220,7 +220,6 @@ class VotingSystem:
         for pos in positions:
 
             position = pos[0]
-
             print(f"\nPosition: {position}")
 
             self.cursor.execute(
@@ -244,10 +243,8 @@ class VotingSystem:
                 ).lower()
 
                 if choice in letters[: len(candidates)]:
-
                     candidate = candidates[letters.index(choice)][0]
                     break
-
                 else:
                     print("Invalid choice!")
 
@@ -310,13 +307,25 @@ class VotingSystem:
                         )
 
                 self.conn.commit()
-
                 print("Poll and candidates added!")
 
             # ACTIVATE POLL
             elif choice == "2":
 
-                title = input("Enter Poll Title to Activate: ")
+                print("\n=== AVAILABLE POLLS ===")
+
+                self.cursor.execute("SELECT title,is_active FROM polls")
+                polls = self.cursor.fetchall()
+
+                if not polls:
+                    print("No polls created.")
+                    continue
+
+                for p in polls:
+                    status = "ACTIVE" if p[1] == 1 else "INACTIVE"
+                    print(f"{p[0]} - {status}")
+
+                title = input("\nEnter Poll Title to Activate: ")
 
                 self.cursor.execute("UPDATE polls SET is_active=0")
 
@@ -332,7 +341,19 @@ class VotingSystem:
             # VIEW RESULTS
             elif choice == "3":
 
-                title = input("Enter Poll Title: ")
+                print("\n=== AVAILABLE POLLS ===")
+
+                self.cursor.execute("SELECT title FROM polls")
+                polls = self.cursor.fetchall()
+
+                if not polls:
+                    print("No polls available.")
+                    continue
+
+                for p in polls:
+                    print("-", p[0])
+
+                title = input("\nEnter Poll Title: ")
 
                 self.cursor.execute(
                     "SELECT id FROM polls WHERE title=?",
@@ -358,6 +379,10 @@ class VotingSystem:
                 )
 
                 results = self.cursor.fetchall()
+
+                if not results:
+                    print("No votes yet.")
+                    continue
 
                 print("\n=== RESULTS ===")
 
